@@ -93,33 +93,35 @@ Func start()
 		ReDim $auctionArray[0]
 		For $i = 0 To UBound($auctionsConfig) - 1
 			writeLogFile($logFile, "Thông tin account đấu giá: " & $auctionsConfig[$i])
-			$idUrl = StringSplit($auctionsConfig[$i], "|")[1]
-			$maxPrice = StringSplit($auctionsConfig[$i], "|")[2]
-			$canAuction = False
-			If StringSplit($auctionsConfig[$i], "|")[0] >= 3 Then
-				Local $dateTimeString = StringSplit($auctionsConfig[$i], "|")[3]
-				$dateTimeString = _DateAdd('h', 0, $dateTimeString)
-				$currentTime = _NowCalc()
-				Local $dateTimeArray = StringSplit($dateTimeString, " ")
-				writeLogFile($logFile, "Thời gian đấu giá: " & $dateTimeArray[1])
-				If $dateTimeArray[1] == @YEAR & "-" & @MON & "-" & @MDAY Or $dateTimeArray[1] == @YEAR & "/" & @MON & "/" & @MDAY Then 
-					$canAuction = True
-				Else
-					If $dateTimeString > $currentTime Then 
-						writeLogFile($logFile, "Thời gian đấu giá trong tương lai !" & $auctionsConfig[$i])
-						Redim $auctionArray[UBound($auctionArray) + 1]
-						$auctionArray[UBound($auctionArray) - 1] = $auctionsConfig[$i]
+			If $auctionsConfig[$i] <> '' Then
+				$idUrl = StringSplit($auctionsConfig[$i], "|")[1]
+				$maxPrice = StringSplit($auctionsConfig[$i], "|")[2]
+				$canAuction = False
+				If StringSplit($auctionsConfig[$i], "|")[0] >= 3 Then
+					Local $dateTimeString = StringSplit($auctionsConfig[$i], "|")[3]
+					$dateTimeString = _DateAdd('h', 0, $dateTimeString)
+					$currentTime = _NowCalc()
+					Local $dateTimeArray = StringSplit($dateTimeString, " ")
+					writeLogFile($logFile, "Thời gian đấu giá: " & $dateTimeArray[1])
+					If $dateTimeArray[1] == @YEAR & "-" & @MON & "-" & @MDAY Or $dateTimeArray[1] == @YEAR & "/" & @MON & "/" & @MDAY Then 
+						$canAuction = True
+					Else
+						If $dateTimeString > $currentTime Then 
+							writeLogFile($logFile, "Thời gian đấu giá trong tương lai !" & $auctionsConfig[$i])
+							Redim $auctionArray[UBound($auctionArray) + 1]
+							$auctionArray[UBound($auctionArray) - 1] = $auctionsConfig[$i]
+						EndIf
 					EndIf
+				Else
+					$canAuction = True
 				EndIf
-			Else
-				$canAuction = True
-			EndIf
 
-			If $canAuction == True Then 
-				auction($idUrl, $maxPrice, $adminIDs)
-			Else
-				writeLogFile($logFile, "Thời gian đấu giá trong tương lai hoặc đã qua !")
-			EndIf
+				If $canAuction == True Then 
+					auction($idUrl, $maxPrice, $adminIDs)
+				Else
+					writeLogFile($logFile, "Thời gian đấu giá trong tương lai hoặc đã qua !")
+				EndIf
+			EndIf 
 		Next
 
 		reWriteAuctionFile($auctionArray)
