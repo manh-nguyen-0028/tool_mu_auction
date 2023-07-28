@@ -19,7 +19,7 @@ Global $baseMuUrl = "https://hn.gamethuvn.net/"
 ;~ MsgBox($MB_OK, "Thông báo", "Đường dẫn tới thư mục AppData: " & $sAppDataLocalPath & "---" & $sChromeUserDataPath)
 
 Func writeLog($textLog)
-	ConsoleWrite(@HOUR & "-" &@MIN & "-" &@SEC & " : " & $textLog &@CRLF)
+	ConsoleWrite(@HOUR & "-" &@MIN & "-" &@SEC & " : " & $textLog & @CRLF)
 EndFunc
 
 Func createTimeToTicks($gio,$phut,$giay)

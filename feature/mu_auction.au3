@@ -75,6 +75,8 @@ Func start()
 	; Set up chrome
 	$sSession = SetupChrome()
 
+	login()
+
 	; thuc hien di vao trang dau gia
 	While @HOUR >= 19 And @HOUR < 23 
 		login()
@@ -93,7 +95,31 @@ Func start()
 			writeLogFile($logFile, "Thông tin account đấu giá: " & $auctionsConfig[$i])
 			$idUrl = StringSplit($auctionsConfig[$i], "|")[1]
 			$maxPrice = StringSplit($auctionsConfig[$i], "|")[2]
-			auction($idUrl, $maxPrice, $adminIDs)
+			$canAuction = False
+			If StringSplit($auctionsConfig[$i], "|")[0] >= 3 Then
+				Local $dateTimeString = StringSplit($auctionsConfig[$i], "|")[3]
+				$dateTimeString = _DateAdd('h', 0, $dateTimeString)
+				$currentTime = _NowCalc()
+				Local $dateTimeArray = StringSplit($dateTimeString, " ")
+				writeLogFile($logFile, "Thời gian đấu giá: " & $dateTimeArray[1])
+				If $dateTimeArray[1] == @YEAR & "-" & @MON & "-" & @MDAY Or $dateTimeArray[1] == @YEAR & "/" & @MON & "/" & @MDAY Then 
+					$canAuction = True
+				Else
+					If $dateTimeString > $currentTime Then 
+						writeLogFile($logFile, "Thời gian đấu giá trong tương lai !" & $auctionsConfig[$i])
+						Redim $auctionArray[UBound($auctionArray) + 1]
+						$auctionArray[UBound($auctionArray) - 1] = $auctionsConfig[$i]
+					EndIf
+				EndIf
+			Else
+				$canAuction = True
+			EndIf
+
+			If $canAuction == True Then 
+				auction($idUrl, $maxPrice, $adminIDs)
+			Else
+				writeLogFile($logFile, "Thời gian đấu giá trong tương lai hoặc đã qua !")
+			EndIf
 		Next
 
 		reWriteAuctionFile($auctionArray)
@@ -154,6 +180,9 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 				$auctionArray[UBound($auctionArray) - 1] = $idUrl & "|" & $maxPrice & "|" & $timeFinish 
 			EndIf
 			If $currentTime < $timeMatch Then writeLogFile($logFile, "Chưa tới thời gian đấu giá ! Thời gian có thể vào đấu giá lúc: " & $timeMatch)
+		Else
+			Redim $auctionArray[UBound($auctionArray) + 1]
+			$auctionArray[UBound($auctionArray) - 1] = $idUrl & "|" & $maxPrice & "|" & $timeFinish 
 		EndIf
 
 		; check gia dang duoc goi y
@@ -183,8 +212,9 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 
 		If $minAuctionAllow > $maxPrice Then $checkMatchMaxPrice = False
 
+		$numPriceAuctionAllow = Number(StringReplace($minAuctionAllow, ",", ""))
+
 		If $isCheckTimeOk == True And $bFound == False And $checkMatchMaxPrice == True Then
-			$numPriceAuctionAllow = Number(StringReplace($minAuctionAllow, ",", ""))
 			Local $sScript = "document.querySelector('input[name=price]').value = '"& ($numPriceAuctionAllow + 1) &"';"
 			_WD_ExecuteScript($sSession, $sScript)
 			secondWait(1)
@@ -200,12 +230,17 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 			EndIf
 			writeLogFile($logFile, "Đấu giá thành công !")
 		Else
-			writeLogFile($logFile, "Không đủ điều kiện đấu giá !")
-			If $isCheckTimeOk == False Then writeLogFile($logFile, "Thời gian chưa đủ để đấu giá ! Thời gian kết thúc: " & $timeFinish)
-			If $bFound == True Then writeLogFile($logFile, "Nhân vật đang đấu giá là chính bạn. Nhân vật đang đấu giá: " & $currentCharAuction)
-			If $checkMatchMaxPrice == True Then writeLogFile($logFile, "Giá cho phép đã vượt qua ngưỡng tối đa. Max giá: " & $maxPrice)
+			$reason = "Không đủ điều kiện đấu giá ! Nguyên nhân: " & @CRLF
+			If $isCheckTimeOk == False Then $reason &= "Thời gian chưa đủ để đấu giá ! Thời gian kết thúc: " & $timeFinish  & @CRLF
+			If $bFound == True Then $reason &= "Nhân vật đang đấu giá là chính bạn. Nhân vật đang đấu giá: " & $currentCharAuction & @CRLF
+			If $checkMatchMaxPrice == False Then $reason &= "Giá cho phép đã vượt qua ngưỡng tối đa. Max giá: " & $maxPrice & " ! Giá hiện tại: " & $numPriceAuctionAllow & @CRLF
+			writeLogFile($logFile, $reason)
 		EndIf	
 		secondWait(2)
+	Else
+		writeLogFile($logFile,"Khong the lay thong tin dau gia")
+		Redim $auctionArray[UBound($auctionArray) + 1]
+		$auctionArray[UBound($auctionArray) - 1] = $idUrl & "|" & $maxPrice
 	EndIf
 	Return True
 EndFunc
