@@ -212,9 +212,9 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 
 		$checkMatchMaxPrice = True
 
-		If $minAuctionAllow > $maxPrice Then $checkMatchMaxPrice = False
-
 		$numPriceAuctionAllow = Number(StringReplace($minAuctionAllow, ",", ""))
+
+		If Number($numPriceAuctionAllow) > Number($maxPrice) Then $checkMatchMaxPrice = False
 
 		If $isCheckTimeOk == True And $bFound == False And $checkMatchMaxPrice == True Then
 			Local $sScript = "document.querySelector('input[name=price]').value = '"& ($numPriceAuctionAllow + 1) &"';"
