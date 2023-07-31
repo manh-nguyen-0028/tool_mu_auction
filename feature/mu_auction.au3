@@ -75,15 +75,19 @@ Func start()
 	; Set up chrome
 	$sSession = SetupChrome()
 
-	login()
+	
+
+	$firstTimeLogin = True
 
 	; thuc hien di vao trang dau gia
 	While @HOUR >= 19 And @HOUR < 23 
-		login()
-
-		; Check IP
-		$isHaveIP = checkIp()
-		If $isHaveIP == False Then ExitLoop
+		If $firstTimeLogin == True Then
+			login()
+			; Check IP
+			$isHaveIP = checkIp()
+			$firstTimeLogin = False
+			If $isHaveIP == False Then ExitLoop
+		EndIf
 
 		getConfigAuction()
 		
