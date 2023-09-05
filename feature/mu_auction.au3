@@ -16,7 +16,7 @@ Local $sSession,$adminIDs,$auctionsConfig
 Local $sTitleLoginSuccess = "MU Hà Nội 2003 | GamethuVN.net - Season 15 - Thông báo"
 Local $sDateToday = @YEAR & @MON & @MDAY
 Local $sDateTime = @YEAR & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC
-Local $logFile, $auctionArray[0]
+Local $logFile,$auctionResultFile, $auctionArray[0]
 Local $recordExample = "5153|100"
 
 start()
@@ -65,8 +65,10 @@ EndFunc
 Func start()
 
 	Local $sFilePath = $sRootDir & "output\\File_" & $sDateTime & ".txt"
+	Local $resultAuctionFilePath = $sRootDir & "output\\auction_result_" & $sDateTime & ".txt"
 
 	$logFile = FileOpen($sFilePath, $FO_OVERWRITE)
+	$auctionResultFile = FileOpen($resultAuctionFilePath, $FO_OVERWRITE)
 	
 	checkThenCloseChrome()
 
@@ -74,8 +76,6 @@ Func start()
 
 	; Set up chrome
 	$sSession = SetupChrome()
-
-	
 
 	$firstTimeLogin = True
 
@@ -134,6 +134,7 @@ Func start()
 	WEnd
 	
 	FileClose($logFile)
+	FileClose($auctionResultFile)
 	
 	; Close webdriver neu thuc hien xong 
 	If $sSession Then _WD_DeleteSession($sSession)
@@ -181,6 +182,7 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 			$isCheckTimeOk = False
 			If $currentTime > $timeFinish Then 
 				writeLogFile($logFile, "Đấu giá đã kết thúc ! Đã kết thúc đấu giá lúc: " & $timeFinish)
+				writeLogFile($auctionResultFile, "ID: " & $idUrl & ". Nhân vật đấu giá thành công: " & $sCurrentChar & ". Giá tối đa cho phép: " & $maxPrice)
 			Else
 				Redim $auctionArray[UBound($auctionArray) + 1]
 				$auctionArray[UBound($auctionArray) - 1] = $idUrl & "|" & $maxPrice & "|" & $timeFinish 
