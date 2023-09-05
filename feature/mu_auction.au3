@@ -12,7 +12,7 @@
 #include <String.au3>
 
 ; Valiable
-Local $sSession,$adminIDs,$auctionsConfig
+Local $sSession,$adminIDs,$auctionsConfig, $accountAuction
 Local $sTitleLoginSuccess = "MU Hà Nội 2003 | GamethuVN.net - Season 15 - Thông báo"
 Local $sDateToday = @YEAR & @MON & @MDAY
 Local $sDateTime = @YEAR & @MON & @MDAY & "_" & @HOUR & @MIN & @SEC
@@ -65,7 +65,7 @@ EndFunc
 Func start()
 
 	Local $sFilePath = $sRootDir & "output\\File_" & $sDateTime & ".txt"
-	Local $resultAuctionFilePath = $sRootDir & "output\\auction_result_" & $sDateTime & ".txt"
+	Local $resultAuctionFilePath = $sRootDir & "output\\File_" & $sDateTime & "_auction_result.txt"
 
 	$logFile = FileOpen($sFilePath, $FO_OVERWRITE)
 	$auctionResultFile = FileOpen($resultAuctionFilePath, $FO_OVERWRITE)
@@ -81,6 +81,8 @@ Func start()
 
 	; thuc hien di vao trang dau gia
 	While @HOUR >= 19 And @HOUR < 23 
+		getConfigAuction()
+
 		If $firstTimeLogin == True Then
 			login()
 			; Check IP
@@ -89,7 +91,7 @@ Func start()
 			If $isHaveIP == False Then ExitLoop
 		EndIf
 
-		getConfigAuction()
+		;~ getConfigAuction()
 		
 		; Truong hop co 1 phan tu va phan tu do bang phan tu example thi dong chuong trinh
 		If UBound($auctionsConfig) == 1 And $auctionsConfig[0] == $recordExample Then ExitLoop
@@ -278,20 +280,29 @@ EndFunc
 Func getConfigAuction()
 	Local $sAdminsIdFilePath = $sRootDir & "input\\admins_id.txt"
 	Local $auctionConfigPath = $sRootDir & "input\\auctions.txt"
+	Local $auctionAccountPath = $sRootDir & "input\\account.txt"
 
 	; Đọc nội dung của file .txt vào mảng
-	If FileExists($sAdminsIdFilePath) And FileExists($auctionConfigPath) Then
+	If FileExists($sAdminsIdFilePath) And FileExists($auctionConfigPath) And FileExists($auctionAccountPath) Then
 		; char auction list
 		$adminIDs = FileReadToArray($sAdminsIdFilePath)
 		If @error Then
-			MsgBox(16, "Lỗi", "Đã xảy ra lỗi khi đọc file.")
+			MsgBox(16, "Lỗi", "Đã xảy ra lỗi khi đọc file adminIDs.")
 			Exit
 		EndIf
 
 		; auction config list
 		$auctionsConfig = FileReadToArray($auctionConfigPath)
 		If @error Then
-			MsgBox(16, "Lỗi", "Đã xảy ra lỗi khi đọc file.")
+			MsgBox(16, "Lỗi", "Đã xảy ra lỗi khi đọc file auctionsConfig.")
+			Exit
+		EndIf
+
+		; account
+		$accountAuction = FileReadToArray($auctionAccountPath)
+		
+		If @error Then
+			MsgBox(16, "Lỗi", "Đã xảy ra lỗi khi đọc file $accountAuction.")
 			Exit
 		EndIf
 	Else
@@ -302,12 +313,11 @@ Func getConfigAuction()
 EndFunc
 
 Func loginWebsite($sSession, $accountInfo)
+	$accountInfo = $accountAuction[0]
+	$username = StringSplit($accountInfo, "|")[1]
+	$password = StringSplit($accountInfo, "|")[2]
 
-	$username = "mala"
-	$password = "manhva02"
-	$charName = "CoGaiVang"
-
-	writeLogFile($logFile, "UserName: " & $username & ", Password: " & $password & ", Char Name: " & $charName)
+	writeLogFile($logFile, "UserName: " & $username & ", Password: " & $password)
 
 	_WD_Navigate($sSession, $baseMuUrl)
 	secondWait(5)
