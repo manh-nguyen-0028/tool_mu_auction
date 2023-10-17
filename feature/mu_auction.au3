@@ -147,6 +147,7 @@ Func start()
 EndFunc
 
 Func auction($idUrl, $maxPrice, $adminIDs)
+	$maxPriceTmp = Number($maxPrice) * 105 / 100
 	writeLogFile($logFile, "Bắt đầu đấu giá cho id : " & $idUrl &  ". Giá tối đa: " & $maxPrice)
 	_WD_Navigate($sSession, getUrlAuction($idUrl))
 	secondWait(5)
@@ -222,7 +223,7 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 
 		$numPriceAuctionAllow = Number(StringReplace($minAuctionAllow, ",", ""))
 
-		If Number($numPriceAuctionAllow) > Number($maxPrice) Then $checkMatchMaxPrice = False
+		If Number($numPriceAuctionAllow) > Number($maxPriceTmp) Then $checkMatchMaxPrice = False
 
 		If $isCheckTimeOk == True And $bFound == False And $checkMatchMaxPrice == True Then
 			Local $sScript = "document.querySelector('input[name=price]').value = '"& ($numPriceAuctionAllow + 1) &"';"
