@@ -80,7 +80,7 @@ Func start()
 	$firstTimeLogin = True
 
 	; thuc hien di vao trang dau gia
-	While @HOUR >= 19 And @HOUR < 23 
+	While @HOUR >= 18 And @HOUR < 23 
 		getConfigAuction()
 
 		If $firstTimeLogin == True Then
@@ -138,6 +138,10 @@ Func start()
 	FileClose($logFile)
 	FileClose($auctionResultFile)
 	
+	; Logout account
+	_WD_Navigate($sSession, $baseMuUrl & "account/logout.shtml")
+	secondWait(5)
+	
 	; Close webdriver neu thuc hien xong 
 	If $sSession Then _WD_DeleteSession($sSession)
 	
@@ -158,9 +162,19 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 
 		$aChildElements = _WD_FindElement($sSession, $_WD_LOCATOR_ByXPath, ".//div[@class='col-sm-6 align-self-center']/div[@class='input-group']/span", $aElements[0], True)
       
-		$sTimeFinish = getTextElement($sSession, $aChildElements[0])
-
+		$sTimeFinishTmp = getTextElement($sSession, $aChildElements[0])
+		; 14:23:55 11/11/2024
 		
+		$arrayTimeFinish = StringSplit($sTimeFinishTmp," ")
+
+		$sYear = StringRight($arrayTimeFinish[2],4)
+		$sDay = StringLeft($arrayTimeFinish[2],2)
+		$sMonth = 11
+
+		$sTimeFinish = $sYear & "/" & $sMonth & "/" & $sDay & " " & $arrayTimeFinish[1]
+
+		writeLogFile($logFile, "$sTimeFinish = " & $sTimeFinish)
+
 		$sCurrentChar = getTextElement($sSession, $aChildElements[1])
 
 		; Boc tach du lieu va trim du lieu
@@ -172,7 +186,7 @@ Func auction($idUrl, $maxPrice, $adminIDs)
 			$currentCharAuction = StringSplit($sCurrentChar, " (")[1]
 			writeLogFile($logFile, "Nhân vật đang đấu giá hiện tại: " & $currentCharAuction)
 		EndIf
-		
+		          
 		$timeFinish = _DateAdd('h', 0, $sTimeFinish)
 
 		$timeMatch = _DateAdd('n', -7, $sTimeFinish)
@@ -380,7 +394,7 @@ Func loginWebsite($sSession, $accountInfo)
 		WEnd
 		
 		; Chuyen lai tab ve gamethuvn.net
-		_WD_Attach($sSession, "gamethuvn.net", "URL")
+		_WD_Attach($sSession, $baseMuUrl, "URL")
 		
 		; _WD_Window($sSession,"MINIMIZE")
 

@@ -14,7 +14,8 @@ Global $sAppDataLocalPath = StringRegExpReplace($sAppDataPath, "Roaming", "Local
 
 Global $sChromeUserDataPath = StringRegExpReplace($sAppDataPath, "Roaming", "Local\\Google\\Chrome\\User Data\") ; Lấy đường dẫn thư mục gốc
 
-Global $baseMuUrl = "https://hn.gamethuvn.net/"
+;~ Global $baseMuUrl = "https://hn.gamethuvn.net/"
+Global $baseMuUrl = "https://hn.mugamethuvn.info/"
 
 ;~ MsgBox($MB_OK, "Thông báo", "Đường dẫn tới thư mục AppData: " & $sAppDataLocalPath & "---" & $sChromeUserDataPath)
 
@@ -186,7 +187,7 @@ Func msgBoxInfo($sText)
 EndFunc
 
 Func getUrlAuction($sId)
-	Return "https://hn.gamethuvn.net/web/event/boss-item-bid.item.shtml?id="&$sId
+	Return $baseMuUrl&"web/event/boss-item-bid.item.shtml?id="&$sId
 EndFunc
 
 Func writeLogFile($logFile, $sText)
